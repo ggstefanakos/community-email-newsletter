@@ -210,3 +210,4 @@ __marimo__/
 /node_modules
 package.json
 package-lock.json
+contacts.json
