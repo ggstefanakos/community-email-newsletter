@@ -5,7 +5,7 @@ from email.mime.multipart import MIMEMultipart
 from dotenv import load_dotenv
 from email.message import EmailMessage
 from email.utils import formataddr
-
+import imghdr
 
 load_dotenv()
 
@@ -45,9 +45,29 @@ def send_email_variant(receiver,subject,body,body_html):
     msg.add_alternative(body_html,subtype="html")
 
     with smtplib.SMTP(SMTP_SERVER,SMTP_PORT) as server:
-            server.starttls()
-            server.login(EMAIL_ADDRESS,EMAIL_PASSWORD)
-            server.sendmail(EMAIL_ADDRESS,receiver,msg.as_string())
+        server.starttls()
+        server.login(EMAIL_ADDRESS,EMAIL_PASSWORD)
+        server.sendmail(EMAIL_ADDRESS,receiver,msg.as_string())
+
+def send_mail_w_attachment(receiver,subject,body,image):
+    msg = EmailMessage()
+    msg["Subject"] = subject
+    msg["From"] = formataddr(("Robot Cousin",f"{EMAIL_ADDRESS}"))
+    msg["To"] = receiver
+    msg["BCC"] = EMAIL_ADDRESS
+    msg.set_content(body)
+
+    with open(image,'rb') as f:
+        file_data = f.read()
+        file_name = f.name
+        file_type = imghdr.what(file_name)
+
+    msg.add_attachment(file_data,maintype="image",subtype=file_type,filename=file_name)
+
+    with smtplib.SMTP_SSL(SMTP_SERVER,465) as server:
+        server.login(EMAIL_ADDRESS,EMAIL_PASSWORD)
+        server.send_message(msg)
+     
 
 if __name__ == "__main__":
 
@@ -58,5 +78,6 @@ if __name__ == "__main__":
       </body>
     </html>
     """
-    send_email_variant("parepoulo91@gmail.com","Test email","This is the first email send by cousin bot.",body_html)
+    # send_email_variant("parepoulo91@gmail.com","Test email","This is the first email send by cousin bot.",body_html)
+    send_mail_w_attachment("parepoulo91@gmail.com","Test email w pix!","This is the first email send by cousin bot. Check out this cool pic!","example.jpg")
 
