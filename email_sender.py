@@ -6,6 +6,7 @@ from dotenv import load_dotenv
 from email.message import EmailMessage
 from email.utils import formataddr
 import imghdr
+import json
 
 load_dotenv()
 
@@ -49,12 +50,12 @@ def send_email_variant(receiver,subject,body,body_html):
         server.login(EMAIL_ADDRESS,EMAIL_PASSWORD)
         server.sendmail(EMAIL_ADDRESS,receiver,msg.as_string())
 
-def send_mail_w_attachment(receiver,subject,body,image):
+def send_mail_w_attachment(receivers,subject,body,image):
     msg = EmailMessage()
     msg["Subject"] = subject
     msg["From"] = formataddr(("Robot Cousin",f"{EMAIL_ADDRESS}"))
-    msg["To"] = receiver
-    msg["BCC"] = EMAIL_ADDRESS
+    msg["To"] = ', '.join(receivers)
+    # msg["BCC"] = EMAIL_ADDRESS # this sends to sender as well
     msg.set_content(body)
 
     with open(image,'rb') as f:
@@ -78,6 +79,6 @@ if __name__ == "__main__":
       </body>
     </html>
     """
-    # send_email_variant("parepoulo91@gmail.com","Test email","This is the first email send by cousin bot.",body_html)
-    send_mail_w_attachment("parepoulo91@gmail.com","Test email w pix!","This is the first email send by cousin bot. Check out this cool pic!","example.jpg")
-
+    with open("contacts.json","r") as f:
+        receivers = json.load(f)
+    send_mail_w_attachment(receivers,"Test email w pix!","This is the first email send by cousin bot. Check out this cool pic!","example.jpg")
