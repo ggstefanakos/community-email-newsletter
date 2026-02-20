@@ -5,7 +5,7 @@ from email.mime.multipart import MIMEMultipart
 from dotenv import load_dotenv
 from email.message import EmailMessage
 from email.utils import formataddr
-import imghdr
+from mimetypes import guess_type
 import json
 
 load_dotenv()
@@ -50,7 +50,7 @@ def send_email_variant(receiver,subject,body,body_html):
         server.login(EMAIL_ADDRESS,EMAIL_PASSWORD)
         server.sendmail(EMAIL_ADDRESS,receiver,msg.as_string())
 
-def send_mail_w_attachment(receivers,subject,body,image):
+def send_mail_w_attachment(receivers,subject,body,file_name):
     msg = EmailMessage()
     msg["Subject"] = subject
     msg["From"] = formataddr(("Robot Cousin",f"{EMAIL_ADDRESS}"))
@@ -58,16 +58,19 @@ def send_mail_w_attachment(receivers,subject,body,image):
     # msg["BCC"] = EMAIL_ADDRESS # this sends to sender as well
     msg.set_content(body)
 
-    with open(image,'rb') as f:
+    mime_type, encoding = guess_type(file_name)
+    app_type, sub_type = mime_type.split("/")[0], mime_type.split("/")[1]
+    
+    with open(file_name,'rb') as f:
         file_data = f.read()
-        file_name = f.name
-        file_type = imghdr.what(file_name)
 
-    msg.add_attachment(file_data,maintype="image",subtype=file_type,filename=file_name)
+    msg.add_attachment(file_data,maintype=app_type,subtype=sub_type,filename=file_name)  
 
     with smtplib.SMTP_SSL(SMTP_SERVER,465) as server:
         server.login(EMAIL_ADDRESS,EMAIL_PASSWORD)
         server.send_message(msg)
+
+    print("Mail sent!")
      
 
 if __name__ == "__main__":
@@ -81,4 +84,4 @@ if __name__ == "__main__":
     """
     with open("contacts.json","r") as f:
         receivers = json.load(f)
-    send_mail_w_attachment(receivers,"Test email w pix!","This is the first email send by cousin bot. Check out this cool pic!","example.jpg")
+    send_mail_w_attachment(receivers,"Test email w pix (alt)!","This is the first email send by cousin bot. Check out this cool pic!","example.jpg")
